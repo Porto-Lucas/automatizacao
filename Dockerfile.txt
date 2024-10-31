@@ -1,0 +1,22 @@
+# Use a imagem oficial do .NET SDK para compilar a aplicação
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+WORKDIR /app
+
+# Copia os arquivos do projeto e restaura as dependências
+COPY *.csproj ./
+RUN dotnet restore
+
+# Copia os arquivos restantes e publica a aplicação
+COPY . ./
+RUN dotnet publish -c Release -o out
+
+# Use a imagem oficial do .NET Runtime para rodar a aplicação
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+COPY --from=build-env /app/out .
+
+# Expõe a porta 80 para acesso HTTP
+EXPOSE 80
+
+# Define o comando de entrada para rodar a aplicação
+ENTRYPOINT ["dotnet", "tft-testes-automatizados.dll"]
